@@ -1,1 +1,65 @@
 # GoboLoom
+
+Design multi-gobo projection installations in the browser. Upload an SVG made of solid-color
+fills; GoboLoom separates it into one mask per color, simulates one gobo projector per color in a
+3D room, and additively composites their projections on the designated wall.
+
+```sh
+npm install
+npm run dev      # http://localhost:5173
+npm test         # unit tests (geometry, color parsing, project files)
+npm run build
+```
+
+Click **Sample** for a red/yellow/blue test image, or drop an `.svg` / saved `.json` project onto the window.
+
+## How the projection works
+
+All coordinates use the **surface frame**: origin at the projection-wall center, +x right, +y up,
++z into the room (the wall is the plane z = 0). Gobo positions and aim points are stored in it.
+
+Each gobo is a virtual perspective projector (position, aim point, beam angle, roll) with a
+**round aperture** (default Ø 64 mm image area, editable per gobo), so beams are cones with elliptical
+footprints on the wall.
+Rendering happens in two stages:
+
+1. **Slide pass** (`slideFrag`, one 2048² render target per gobo): renders what is physically on
+   the gobo. With *pre-correction* on, every slide pixel is cast through the **baked** projector
+   pose onto the wall and takes the mask value of the artwork there, so the slide is
+   inverse-keystoned. Without it, the raw mask is fitted into the slide. Calibration (warp,
+   offset, rotation, scale, feather) is applied on top.
+2. **Wall pass** (`layerFrag`, one additive mesh per gobo): samples the slide with projective
+   texture coordinates from the **live** projector camera.
+
+If the live pose equals the baked pose, the composite is geometrically exact. Move a gobo
+without re-baking and you see the real-time distortion a physical rig would show. **Live**
+mode re-bakes continuously. **Export slides** downloads the pre-distorted slides as PNGs for
+fabrication (2048 px across the gobo diameter); **Report** downloads a CSV of placements,
+incidence angles and keystone.
+
+The **Previews** strip shows each gobo's slide live as a round disk (steel where light is blocked,
+light color where it passes), with the artwork's physical size on the gobo in mm and a warning
+when the round aperture clips the artwork.
+
+Masks are rasterized with every shape painted in document order (its own color white, all
+others black), so occlusion is preserved and the masks partition the artwork.
+
+## Scope (v1)
+
+- Flat rectangular projection wall only. The other room surfaces receive no light.
+- Solid fills only. Gradients, patterns, images, strokes, filters, `<use>` and transparency
+  are ignored, and a warning lists them. Black fills can't be made with light, so they stay unlit.
+- SVGs are sanitized: scripts, event handlers and external references are stripped.
+- Physical falloff (inverse-square × cosine) is optional and normalized at each aim point.
+
+## Layout
+
+| Path | Role |
+| --- | --- |
+| `src/lib/geometry.ts` | projector cameras, footprints, incidence/keystone metrics, beam fitting |
+| `src/lib/svg.ts` | SVG validation, sanitizing, color extraction, mask rasterization |
+| `src/lib/project.ts` | JSON project save/load with validation |
+| `src/three/shaders.ts` | slide, projection-layer, wall and overlay GLSL |
+| `src/three/SceneController.ts` | room, gobo views, beams, drag/selection, view modes |
+| `src/store.ts` | Zustand state and actions |
+| `src/components/` | React UI |

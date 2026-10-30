@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 920">
+  <!-- Additive RGB mixing: each circle is one gobo. mix-blend-mode: screen makes the SVG itself
+       preview the same mixing and tells GoboLoom to keep each color's full circle. -->
+  <g style="mix-blend-mode: screen">
+    <circle cx="500" cy="330" r="290" fill="#ff0000" style="mix-blend-mode: screen" />
+    <circle cx="335" cy="615" r="290" fill="#00ff00" style="mix-blend-mode: screen" />
+    <circle cx="665" cy="615" r="290" fill="#0000ff" style="mix-blend-mode: screen" />
+  </g>
+</svg>

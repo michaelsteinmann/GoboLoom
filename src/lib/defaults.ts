@@ -8,7 +8,7 @@ export const DEFAULT_VIEW: ViewSettings = {
   dragMode: 'body',
   wireframe: false,
   beams: true,
-  icons: false,
+  icons: true,
   grid: false,
   compositeInset: false,
   reference: false,

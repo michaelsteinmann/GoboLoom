@@ -49,9 +49,9 @@ Rendering happens in two stages:
 
 If the live pose equals the baked pose, the composite is geometrically exact. Move a gobo
 without re-baking and you see the real-time distortion a physical rig would show. **Live**
-mode re-bakes continuously. **Export slides** downloads the pre-distorted slides as PNGs for
-fabrication (2048 px across the gobo diameter); **Report** downloads a CSV of placements,
-incidence angles and keystone.
+mode re-bakes continuously. **Export** downloads one zip with the pre-distorted slides as PNGs
+for fabrication (`slides/`, 2048 px across the gobo diameter), the source SVG, a CSV report of
+placements, incidence angles and keystone (`gobo-placement.csv`), and the project file.
 
 The **Previews** strip shows each gobo's slide live as a round disk (steel where light is blocked,
 light color where it passes), with the artwork's physical size on the gobo in mm and a warning

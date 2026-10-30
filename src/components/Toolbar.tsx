@@ -6,6 +6,7 @@ import { goboMetrics, poseOf } from '../lib/geometry';
 import { sceneRef } from './Viewport';
 import { downloadOfflineCopy, offlineCopyAvailable, useOffline } from '../lib/offline';
 import { SOURCE_URL } from '../lib/meta';
+import { zip, type ZipEntry } from '../lib/zip';
 import { Button, Toggle } from './controls';
 
 export async function uploadSvg(file: File) {
@@ -28,15 +29,15 @@ async function loadSample(name: string) {
   await useStore.getState().loadSvg(text, name);
 }
 
-function exportSlides() {
-  const { gobos } = useStore.getState();
-  for (const g of gobos) {
-    const canvas = sceneRef.current?.slideCanvas(g.id, 2048);
-    canvas?.toBlob((b) => b && download(`${slug(g.name)}-${g.layer.slice(1)}-${g.diameterMm}mm.png`, b), 'image/png');
-  }
+function slidePng(id: string): Promise<Uint8Array | null> {
+  return new Promise((resolve) => {
+    const canvas = sceneRef.current?.slideCanvas(id, 2048);
+    if (!canvas) return resolve(null);
+    canvas.toBlob(async (b) => resolve(b ? new Uint8Array(await b.arrayBuffer()) : null), 'image/png');
+  });
 }
 
-function exportReport() {
+function placementReport() {
   const { gobos, room } = useStore.getState();
   const head = 'name,layer,color,gobo_diameter_mm,x_m,y_m,z_m,target_x_m,target_y_m,beam_deg,roll_deg,distance_m,h_angle_deg,v_angle_deg,keystone_h_pct,keystone_v_pct,throw_ratio';
   const rows = gobos.map((g) => {
@@ -50,7 +51,28 @@ function exportReport() {
     ].join(',');
   });
   const note = `# GoboLoom placement report (${SOURCE_URL}). Coordinates relative to the projection-wall center (${room.projectionWall} wall); z = distance from the wall.`;
-  download('gobo-placement.csv', [note, head, ...rows].join('\n'), 'text/csv');
+  return [note, head, ...rows].join('\n');
+}
+
+/** One zip with everything needed to build the installation: slides, source artwork, report and project. */
+async function exportPackage() {
+  const { gobos, artwork, exportProject, setStatus } = useStore.getState();
+  setStatus({ kind: 'busy', message: 'Packing export…' });
+  try {
+    const base = slug((artwork.fileName ?? 'gobo-loom').replace(/\.svg$/i, ''));
+    const entries: ZipEntry[] = [];
+    for (const g of gobos) {
+      const png = await slidePng(g.id);
+      if (png) entries.push({ name: `slides/${slug(g.name)}-${g.layer.slice(1)}-${g.diameterMm}mm.png`, data: png });
+    }
+    if (artwork.svg) entries.push({ name: `${base}.svg`, data: artwork.svg });
+    entries.push({ name: 'gobo-placement.csv', data: placementReport() });
+    entries.push({ name: 'gobo-loom-project.json', data: exportProject() });
+    download(`${base}-gobos.zip`, new Blob([zip(entries)], { type: 'application/zip' }));
+    setStatus({ kind: 'idle', message: '' });
+  } catch (e) {
+    setStatus({ kind: 'error', message: `Export failed: ${(e as Error).message}` });
+  }
 }
 
 function OfflineStatus() {
@@ -140,11 +162,12 @@ export function Toolbar() {
       <Button onClick={() => download('gobo-loom-project.json', useStore.getState().exportProject(), 'application/json')}>
         Save
       </Button>
-      <Button disabled={!hasGobos} onClick={exportSlides} title="Download each round gobo slide (pre-distorted mask) as a 2048 px PNG spanning the gobo diameter">
-        Export slides
-      </Button>
-      <Button disabled={!hasGobos} onClick={exportReport} title="Download a CSV placement report for installation">
-        Report
+      <Button
+        disabled={!hasGobos}
+        onClick={exportPackage}
+        title="Download a zip with each round gobo slide (pre-distorted mask, 2048 px PNG across the gobo diameter), the source SVG, the CSV placement report and the project file"
+      >
+        Export
       </Button>
       <span className="mx-1 h-5 w-px bg-neutral-800" />
       <div className="flex rounded bg-neutral-900 p-0.5">

@@ -25,7 +25,7 @@ You can also drop an `.svg` or a saved `.json` project onto the window.
 - **Hard reload (Ctrl+F5 / Shift+reload):** browsers skip the service worker for hard reloads, so
   a hard reload while offline shows the browser's error page. Nothing on the site can change
   that. A hard reload while online is fine: offline use keeps working afterwards.
-- **Offline copy:** the **Offline copy** button downloads `gobo-loom-offline.html`, a single
+- **Offline copy:** clicking the **Offline ready** indicator downloads `gobo-loom-offline.html`, a single
   self-contained file (built with `vite build --mode offline`). Opened from disk it needs no
   network at all and survives any reload.
 

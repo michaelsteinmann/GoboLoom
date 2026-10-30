@@ -4,7 +4,7 @@ import { download, pickFile, slug } from '../lib/files';
 import { MAX_SVG_BYTES } from '../lib/svg';
 import { goboMetrics, poseOf } from '../lib/geometry';
 import { sceneRef } from './Viewport';
-import { downloadOfflineCopy, isSingleFile, offlineCopyAvailable, useOffline } from '../lib/offline';
+import { downloadOfflineCopy, offlineCopyAvailable, useOffline } from '../lib/offline';
 import { SOURCE_URL } from '../lib/meta';
 import { Button, Toggle } from './controls';
 
@@ -61,16 +61,22 @@ function OfflineStatus() {
         ● Offline
       </span>
     );
-  if (cache === 'ready')
+  if (cache === 'ready' && offlineCopyAvailable)
     return (
-      <span
-        className="text-xs text-emerald-400"
-        title={
-          isSingleFile
-            ? 'Self-contained copy: works without any network'
-            : 'Cached for offline use. A hard reload (Ctrl+F5) bypasses the cache; use the offline copy for that.'
+      <button
+        type="button"
+        className="text-xs text-emerald-400 underline-offset-2 hover:text-emerald-300 hover:underline"
+        title="Cached for offline use. A hard reload (Ctrl+F5) bypasses the cache; click to download a self-contained HTML copy that works without network, even after Ctrl+F5."
+        onClick={() =>
+          downloadOfflineCopy().catch((e) => useStore.getState().setStatus({ kind: 'error', message: (e as Error).message }))
         }
       >
+        ● Offline ready
+      </button>
+    );
+  if (cache === 'ready')
+    return (
+      <span className="text-xs text-emerald-400" title="Self-contained copy: works without any network">
         ● Offline ready
       </span>
     );
@@ -137,21 +143,6 @@ export function Toolbar() {
       <Button disabled={!hasGobos} onClick={exportSlides} title="Download each round gobo slide (pre-distorted mask) as a 2048 px PNG spanning the gobo diameter">
         Export slides
       </Button>
-      {!isSingleFile && (
-        <Button
-          disabled={!offlineCopyAvailable}
-          onClick={() =>
-            downloadOfflineCopy().catch((e) => useStore.getState().setStatus({ kind: 'error', message: (e as Error).message }))
-          }
-          title={
-            offlineCopyAvailable
-              ? 'Download a single self-contained HTML file that works without network, even after Ctrl+F5'
-              : 'Only available in the built site (npm run build), not on the dev server'
-          }
-        >
-          Offline copy
-        </Button>
-      )}
       <Button disabled={!hasGobos} onClick={exportReport} title="Download a CSV placement report for installation">
         Report
       </Button>

@@ -4,6 +4,8 @@ import { download, pickFile, slug } from '../lib/files';
 import { MAX_SVG_BYTES } from '../lib/svg';
 import { goboMetrics, poseOf } from '../lib/geometry';
 import { sceneRef } from './Viewport';
+import { downloadOfflineCopy, isSingleFile, offlineCopyAvailable, useOffline } from '../lib/offline';
+import { SOURCE_URL } from '../lib/meta';
 import { Button, Toggle } from './controls';
 
 export async function uploadSvg(file: File) {
@@ -13,8 +15,15 @@ export async function uploadSvg(file: File) {
   await loadSvg(await file.text(), file.name);
 }
 
+// Samples are bundled into the app so they work offline and in the single-file copy.
+const SAMPLES: Record<string, string> = import.meta.glob('../samples/*.svg', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
+
 async function loadSample(name: string) {
-  const text = await fetch(`${import.meta.env.BASE_URL}samples/${name}`).then((r) => r.text());
+  const text = SAMPLES[`../samples/${name}`];
   if (useStore.getState().gobos.length && !confirm('Replace the current artwork and its gobos?')) return;
   await useStore.getState().loadSvg(text, name);
 }
@@ -40,8 +49,33 @@ function exportReport() {
       f(m.keystoneH, 2), f(m.keystoneV, 2), f(m.throwRatio, 3),
     ].join(',');
   });
-  const note = `# GoboLoom placement report. Coordinates relative to the projection-wall center (${room.projectionWall} wall); z = distance from the wall.`;
+  const note = `# GoboLoom placement report (${SOURCE_URL}). Coordinates relative to the projection-wall center (${room.projectionWall} wall); z = distance from the wall.`;
   download('gobo-placement.csv', [note, head, ...rows].join('\n'), 'text/csv');
+}
+
+function OfflineStatus() {
+  const { cache, online } = useOffline();
+  if (!online)
+    return (
+      <span className="text-xs text-amber-300" title="No network: running from the offline cache">
+        ● Offline
+      </span>
+    );
+  if (cache === 'ready')
+    return (
+      <span
+        className="text-xs text-emerald-400"
+        title={
+          isSingleFile
+            ? 'Self-contained copy: works without any network'
+            : 'Cached for offline use. A hard reload (Ctrl+F5) bypasses the cache; use the offline copy for that.'
+        }
+      >
+        ● Offline ready
+      </span>
+    );
+  if (cache === 'installing') return <span className="text-xs text-neutral-500">Caching for offline…</span>;
+  return null;
 }
 
 export function Toolbar() {
@@ -63,6 +97,15 @@ export function Toolbar() {
         <span className="bg-gradient-to-r from-red-400 via-yellow-300 to-sky-400 bg-clip-text text-lg font-bold text-transparent">
           GoboLoom
         </span>
+        <a
+          href={SOURCE_URL}
+          target="_blank"
+          rel="noreferrer"
+          className="text-[11px] text-neutral-500 underline-offset-2 hover:text-neutral-300 hover:underline"
+          title={SOURCE_URL}
+        >
+          source
+        </a>
       </div>
       <Button variant="primary" onClick={() => pickFile('.svg,image/svg+xml').then((f) => f && uploadSvg(f))}>
         Upload SVG
@@ -94,6 +137,21 @@ export function Toolbar() {
       <Button disabled={!hasGobos} onClick={exportSlides} title="Download each round gobo slide (pre-distorted mask) as a 2048 px PNG spanning the gobo diameter">
         Export slides
       </Button>
+      {!isSingleFile && (
+        <Button
+          disabled={!offlineCopyAvailable}
+          onClick={() =>
+            downloadOfflineCopy().catch((e) => useStore.getState().setStatus({ kind: 'error', message: (e as Error).message }))
+          }
+          title={
+            offlineCopyAvailable
+              ? 'Download a single self-contained HTML file that works without network, even after Ctrl+F5'
+              : 'Only available in the built site (npm run build), not on the dev server'
+          }
+        >
+          Offline copy
+        </Button>
+      )}
       <Button disabled={!hasGobos} onClick={exportReport} title="Download a CSV placement report for installation">
         Report
       </Button>
@@ -127,9 +185,11 @@ export function Toolbar() {
           title="Physical inverse-square and incidence-angle brightness falloff (normalized at each aim point)"
         />
       </div>
+      <span className="ml-auto" />
+      <OfflineStatus />
       {status.message && (
         <span
-          className={`ml-auto max-w-[40ch] truncate text-xs ${
+          className={`max-w-[40ch] truncate text-xs ${
             status.kind === 'error' ? 'text-red-400' : status.kind === 'busy' ? 'text-sky-300' : 'text-neutral-400'
           }`}
           title={status.message}

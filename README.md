@@ -1,5 +1,7 @@
 # GoboLoom
 
+Source: <https://github.com/michaelsteinmann/GoboLoom> · Live: <https://michaelsteinmann.github.io/GoboLoom/>
+
 Design multi-gobo projection installations in the browser. Upload an SVG made of solid-color
 fills; GoboLoom separates it into one mask per color, simulates one gobo projector per color in a
 3D room, and additively composites their projections on the designated wall.
@@ -8,12 +10,24 @@ fills; GoboLoom separates it into one mask per color, simulates one gobo project
 npm install
 npm run dev      # http://localhost:5173
 npm test         # unit tests (geometry, color parsing, project files)
-npm run build
+npm run build    # site in dist/ (incl. sw.js and gobo-loom-offline.html)
 ```
 
 Click **Sample** for an alpine sunset projected by three red, green and blue gobos (their overlaps
 mix into yellow, cyan, magenta and white), **RGB demo** for three overlapping circles, or **Logo**.
 You can also drop an `.svg` or a saved `.json` project onto the window.
+
+## Offline use
+
+- **Hosted site:** a service worker (`sw.js`, generated at build time) caches the whole app on the
+  first visit. After that, normal reloads and later visits work without a network. The toolbar
+  shows **Offline ready**.
+- **Hard reload (Ctrl+F5 / Shift+reload):** browsers skip the service worker for hard reloads, so
+  a hard reload while offline shows the browser's error page. Nothing on the site can change
+  that. A hard reload while online is fine: offline use keeps working afterwards.
+- **Offline copy:** the **Offline copy** button downloads `gobo-loom-offline.html`, a single
+  self-contained file (built with `vite build --mode offline`). Opened from disk it needs no
+  network at all and survives any reload.
 
 ## How the projection works
 

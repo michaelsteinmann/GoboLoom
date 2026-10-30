@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <!-- Alpine sunset for three gobos (red, green, blue). Colored shapes mix additively
+       (mix-blend-mode: screen); black shapes cut out the light beneath them.
+       Blue sky, R+B magenta glow, R+G yellow sun with R+G+B white core, R+G+B white snow,
+       G meadow, G+B cyan lake and stars, R and G sails. Document order matters. -->
+  <style>
+    .gl-r { fill: #ff0000; mix-blend-mode: screen; }
+    .gl-g { fill: #00ff00; mix-blend-mode: screen; }
+    .gl-b { fill: #0000ff; mix-blend-mode: screen; }
+    .gl-k { fill: #000000; }
+  </style>
+
+  <!-- sky (blue) and sunset glow (red over blue = magenta) -->
+  <rect class="gl-b" x="0" y="0" width="1600" height="660" />
+  <rect class="gl-r" x="0" y="250" width="1600" height="410" />
+
+  <!-- stars: green over blue = cyan, red over blue = magenta -->
+  <circle class="gl-g" cx="140" cy="90" r="9" />
+  <circle class="gl-g" cx="420" cy="150" r="7" />
+  <circle class="gl-g" cx="700" cy="70" r="10" />
+  <circle class="gl-r" cx="900" cy="140" r="7" />
+  <circle class="gl-g" cx="1320" cy="80" r="8" />
+  <circle class="gl-r" cx="1500" cy="160" r="9" />
+  <circle class="gl-g" cx="260" cy="200" r="6" />
+
+  <!-- sun: cut the sky, then red + green = yellow, blue core makes it white-hot -->
+  <circle class="gl-k" cx="1050" cy="330" r="115" />
+  <circle class="gl-r" cx="1050" cy="330" r="115" />
+  <circle class="gl-g" cx="1050" cy="330" r="115" />
+  <circle class="gl-b" cx="1050" cy="330" r="62" />
+
+  <!-- mountains: unlit silhouettes in front of sky and sun -->
+  <polygon class="gl-k" points="0,660 0,430 180,330 320,400 520,250 700,380 860,300 1000,420 1150,330 1330,220 1480,350 1600,300 1600,660" />
+
+  <!-- snowcaps: red + green + blue = white -->
+  <polygon class="gl-r" points="180,330 240,360 222,356 205,366 188,356 160,366 126,360" />
+  <polygon class="gl-g" points="180,330 240,360 222,356 205,366 188,356 160,366 126,360" />
+  <polygon class="gl-b" points="180,330 240,360 222,356 205,366 188,356 160,366 126,360" />
+  <polygon class="gl-r" points="520,250 575,290 552,284 535,298 515,286 497,296 467,290" />
+  <polygon class="gl-g" points="520,250 575,290 552,284 535,298 515,286 497,296 467,290" />
+  <polygon class="gl-b" points="520,250 575,290 552,284 535,298 515,286 497,296 467,290" />
+  <polygon class="gl-r" points="1330,220 1382,265 1360,258 1342,272 1322,260 1300,272 1256,265" />
+  <polygon class="gl-g" points="1330,220 1382,265 1360,258 1342,272 1322,260 1300,272 1256,265" />
+  <polygon class="gl-b" points="1330,220 1382,265 1360,258 1342,272 1322,260 1300,272 1256,265" />
+
+  <!-- meadow: green -->
+  <polygon class="gl-g" points="0,660 0,590 200,560 420,600 650,570 900,610 1150,575 1400,600 1600,570 1600,660" />
+
+  <!-- lake: green + blue = cyan -->
+  <rect class="gl-k" x="0" y="660" width="1600" height="240" />
+  <rect class="gl-g" x="0" y="660" width="1600" height="240" />
+  <rect class="gl-b" x="0" y="660" width="1600" height="240" />
+
+  <!-- sun reflection: cut the lake, then red + green = yellow -->
+  <rect class="gl-k" x="980" y="690" width="140" height="10" />
+  <rect class="gl-k" x="1000" y="720" width="100" height="9" />
+  <rect class="gl-k" x="1020" y="750" width="60" height="8" />
+  <rect class="gl-k" x="1035" y="780" width="30" height="7" />
+  <rect class="gl-r" x="980" y="690" width="140" height="10" />
+  <rect class="gl-r" x="1000" y="720" width="100" height="9" />
+  <rect class="gl-r" x="1020" y="750" width="60" height="8" />
+  <rect class="gl-r" x="1035" y="780" width="30" height="7" />
+  <rect class="gl-g" x="980" y="690" width="140" height="10" />
+  <rect class="gl-g" x="1000" y="720" width="100" height="9" />
+  <rect class="gl-g" x="1020" y="750" width="60" height="8" />
+  <rect class="gl-g" x="1035" y="780" width="30" height="7" />
+
+  <!-- sailboat: unlit hull, pure red mainsail, pure green jib -->
+  <polygon class="gl-k" points="360,700 360,795 425,795" />
+  <polygon class="gl-k" points="352,715 352,795 300,795" />
+  <polygon class="gl-k" points="290,800 435,800 412,828 312,828" />
+  <polygon class="gl-r" points="360,700 360,795 425,795" />
+  <polygon class="gl-g" points="352,715 352,795 300,795" />
+</svg>

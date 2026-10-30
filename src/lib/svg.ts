@@ -1,4 +1,4 @@
-import { isUnprojectable, normalizeColor } from './color';
+import { hexToRgb, isUnprojectable, normalizeColor } from './color';
 import type { OverlapMode, PaletteEntry } from '../types';
 
 export const MAX_SVG_BYTES = 5 * 1024 * 1024;
@@ -35,6 +35,16 @@ function sanitize(root: Element) {
         el.removeAttribute(attr.name);
     }
   }
+}
+
+/** Hue in degrees (0 = red, 120 = green, 240 = blue) so palettes list in rainbow order. */
+function hue(hex: string) {
+  const [r, g, b] = hexToRgb(hex).map((c) => c / 255);
+  const max = Math.max(r, g, b);
+  const d = max - Math.min(r, g, b);
+  if (d === 0) return 360; // grays last
+  const h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return (h * 60 + 360) % 360;
 }
 
 /** mix-blend-mode is not inherited, so check the shape and every enclosing group. */
@@ -129,10 +139,10 @@ export function analyzeSvg(text: string): AnalyzedSvg {
 
   const palette: PaletteEntry[] = [...counts]
     .map(([hex, shapeCount]) => ({ hex, shapeCount, projectable: !isUnprojectable(hex) }))
-    .sort((a, b) => Number(b.projectable) - Number(a.projectable) || b.shapeCount - a.shapeCount);
+    .sort((a, b) => Number(b.projectable) - Number(a.projectable) || hue(a.hex) - hue(b.hex));
   if (!palette.some((p) => p.projectable))
     throw new SvgError('The SVG only contains black fills, which cannot be produced with projected light.');
-  if (palette.some((p) => !p.projectable)) warnings.add('Black regions are left unlit (no gobo is created for black).');
+  if (palette.some((p) => !p.projectable)) warnings.add('Black regions stay unlit (no gobo is created for black); in Mix light mode they cut out light beneath them.');
 
   return {
     svg: new XMLSerializer().serializeToString(root),
@@ -185,7 +195,8 @@ function prepared(a: AnalyzedSvg): SVGSVGElement {
  * One black/white mask per color. Shapes are painted in document order with the layer's
  * shapes white. In 'occlude' mode every other shape is painted black, so later shapes hide
  * earlier ones and the masks partition the artwork. In 'additive' mode other shapes are not
- * painted, so each mask holds its color's full shapes and overlapping light mixes.
+ * painted, so each mask holds its color's full shapes and overlapping light mixes; only black
+ * shapes still occlude, cutting light out of every layer (as a non-blended black shape would).
  */
 export async function rasterizeMasks(a: AnalyzedSvg, colors: string[], blend: OverlapMode, longest = 2048) {
   const masks = new Map<string, HTMLCanvasElement>();
@@ -204,7 +215,8 @@ export async function rasterizeMasks(a: AnalyzedSvg, colors: string[], blend: Ov
       if (!isRenderedShape(el)) return;
       const s = (el as SVGElement).style;
       const lit = a.fills[i] === hex;
-      const occludes = blend === 'occlude' && a.fills[i] !== null;
+      const f = a.fills[i];
+      const occludes = f !== null && (blend === 'occlude' || (f !== OCCLUDER && isUnprojectable(f)));
       s.setProperty('fill', lit ? '#fff' : occludes ? '#000' : 'none', 'important');
       s.setProperty('stroke', 'none', 'important');
       s.setProperty('fill-opacity', '1', 'important');

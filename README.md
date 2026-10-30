@@ -11,7 +11,9 @@ npm test         # unit tests (geometry, color parsing, project files)
 npm run build
 ```
 
-Click **Sample** for a red/yellow/blue test image, or drop an `.svg` / saved `.json` project onto the window.
+Click **Sample** for an alpine sunset projected by three red, green and blue gobos (their overlaps
+mix into yellow, cyan, magenta and white), **RGB demo** for three overlapping circles, or **Logo**.
+You can also drop an `.svg` or a saved `.json` project onto the window.
 
 ## How the projection works
 
@@ -41,8 +43,10 @@ The **Previews** strip shows each gobo's slide live as a round disk (steel where
 light color where it passes), with the artwork's physical size on the gobo in mm and a warning
 when the round aperture clips the artwork.
 
-Masks are rasterized with every shape painted in document order (its own color white, all
-others black), so occlusion is preserved and the masks partition the artwork.
+Masks are rasterized with every shape painted in document order. In **Occlude** mode a layer's
+shapes are white and all others black, so the masks partition the artwork. In **Mix light** mode
+(auto-selected when the SVG uses `mix-blend-mode: screen`) each mask keeps its color's full shapes
+so overlapping light adds up, and black shapes cut light out of every layer.
 
 ## Scope (v1)
 

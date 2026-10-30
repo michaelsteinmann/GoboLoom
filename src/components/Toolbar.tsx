@@ -67,7 +67,12 @@ export function Toolbar() {
       <Button variant="primary" onClick={() => pickFile('.svg,image/svg+xml').then((f) => f && uploadSvg(f))}>
         Upload SVG
       </Button>
-      <Button onClick={() => loadSample('tricolor.svg')}>Sample</Button>
+      <Button
+        onClick={() => loadSample('alpine-rgb.svg')}
+        title="Alpine sunset from three red, green and blue gobos: overlaps mix into yellow, cyan, magenta and white"
+      >
+        Sample
+      </Button>
       <Button onClick={() => loadSample('rgb-mix.svg')} title="Three overlapping red, green and blue circles: light mixes to white">
         RGB demo
       </Button>

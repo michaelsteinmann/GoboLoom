@@ -144,7 +144,7 @@ export function Toolbar() {
       >
         Sample
       </Button>
-      <Button onClick={() => loadSample('rgb-mix.svg')} title="Three overlapping red, green and blue circles: light mixes to white">
+      <Button onClick={() => loadSample('rgb-mix.svg')} title="Three overlapping red, green and blue squares: light mixes to white">
         RGB demo
       </Button>
       <Button

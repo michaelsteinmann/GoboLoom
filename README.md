@@ -14,7 +14,7 @@ npm run build    # site in dist/ (incl. sw.js and gobo-loom-offline.html)
 ```
 
 Click **Sample** for an alpine sunset projected by three red, green and blue gobos (their overlaps
-mix into yellow, cyan, magenta and white), **RGB demo** for three overlapping circles, or **Logo**.
+mix into yellow, cyan, magenta and white), **RGB demo** for three overlapping squares, or **Logo**.
 You can also drop an `.svg` or a saved `.json` project onto the window.
 
 ## Offline use
